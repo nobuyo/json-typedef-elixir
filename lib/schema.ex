@@ -9,7 +9,9 @@ defmodule JTD.TypeError do
 end
 
 defmodule JTD.Schema do
-  @moduledoc false
+  @moduledoc """
+    A module to convert Map to JSON Type Definition schema.
+  """
 
   alias JTD.TypeError
 
@@ -87,7 +89,7 @@ defmodule JTD.Schema do
     map
     |> check_keywords!
 
-    { map, %{} }
+    {map, %{}}
     |> parse_metadata
     |> parse_nullable
     |> parse_definitions
@@ -111,19 +113,19 @@ defmodule JTD.Schema do
   def verify(schema), do: verify(schema, schema)
   def verify(schema, root) do
     [
-      { :metadata, :map },
-      { :nullable, :boolean },
-      { :definitions, :map },
-      { :ref, :atom },
-      { :type, :atom },
-      { :enum, :list },
-      { :elements, :schema },
-      { :properties, :map },
-      { :optional_properties, :map },
-      { :additional_properties, :boolean },
-      { :values, :schema },
-      { :discriminator, :atom },
-      { :mapping, :map }
+      {:metadata, :map},
+      {:nullable, :boolean},
+      {:definitions, :map},
+      {:ref, :atom},
+      {:type, :atom},
+      {:enum, :list},
+      {:elements, :schema},
+      {:properties, :map},
+      {:optional_properties, :map},
+      {:additional_properties, :boolean},
+      {:values, :schema},
+      {:discriminator, :atom},
+      {:mapping, :map}
     ]
     |> Enum.each(fn opt -> check_type!(schema, opt) end)
 
@@ -150,12 +152,19 @@ defmodule JTD.Schema do
     schema
   end
 
+  def form(%{ref: ref}) when not is_nil(ref), do: :ref
+  def form(%{type: type}) when not is_nil(type), do: :type
+  def form(%{enum: enum}) when not is_nil(enum), do: :enum
+  def form(%{elements: elements}) when not is_nil(elements), do: :elements
+  def form(%{properties: properties, optionalProperties: optional_properties}) when (not is_nil(properties)) or (not is_nil(optional_properties)), do: :properties
+  def form(%{values: values}) when not is_nil(values), do: :values
+  def form(%{discriminator: discriminator}) when not is_nil(discriminator),  do: :discriminator
+  def form(_), do: :empty
+
   defp convert_key(s) do
-    try do
-      s |> String.to_atom()
-    rescue
-      ArgumentError -> s
-    end
+    s |> String.to_atom()
+  rescue
+    ArgumentError -> s
   end
 
   defp check_keywords!(schema) do
@@ -167,103 +176,103 @@ defmodule JTD.Schema do
     schema
   end
 
-  defp parse_metadata({ schema, accum }) do
+  defp parse_metadata({schema, accum}) do
     schema |> Map.get(:metadata) |> if do
-      { schema, schema |> Map.take([:metadata]) |> Map.merge(accum) }
+      {schema, schema |> Map.take([:metadata]) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp parse_nullable({ schema, accum }) do
+  defp parse_nullable({schema, accum}) do
     schema |> Map.get(:nullable) |> is_nil |> if do
-      { schema, accum }
+      {schema, accum}
     else
-      { schema, schema |> Map.take([:nullable]) |> Map.merge(accum) }
+      {schema, schema |> Map.take([:nullable]) |> Map.merge(accum)}
     end
   end
 
   defp recursively_parse_enumerable_schema(schema, keyname) do
-    %{ keyname => schema |> Map.get(keyname) |> Enum.map(fn {k, v} -> { k, from_map(v) } end) |> Map.new }
+    %{keyname => schema |> Map.get(keyname) |> Enum.map(fn {k, v} -> {k, from_map(v)} end) |> Map.new}
   end
 
   defp recursively_parse_schema(schema, keyname) do
-    %{ keyname => schema |> Map.get(keyname) |> from_map }
+    %{keyname => schema |> Map.get(keyname) |> from_map}
   end
 
-  defp parse_definitions({ schema, accum }) do
+  defp parse_definitions({schema, accum}) do
     schema |> Map.get(:definitions) |> if do
-      { schema, schema |> recursively_parse_enumerable_schema(:definitions) |> Map.merge(accum) }
+      {schema, schema |> recursively_parse_enumerable_schema(:definitions) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp parse_ref({ schema, accum }) do
-    { schema, schema |> Map.take([:ref]) |> Map.merge(accum) }
+  defp parse_ref({schema, accum}) do
+    {schema, schema |> Map.take([:ref]) |> Map.merge(accum)}
   end
 
-  defp parse_type({ schema, accum }) do
-    { schema, schema |> Map.take([:type]) |> Map.merge(accum) }
+  defp parse_type({schema, accum}) do
+    {schema, schema |> Map.take([:type]) |> Map.merge(accum)}
   end
 
-  defp parse_enum({ schema, accum }) do
-    { schema, schema |> Map.take([:enum]) |> Map.merge(accum) }
+  defp parse_enum({schema, accum}) do
+    {schema, schema |> Map.take([:enum]) |> Map.merge(accum)}
   end
 
-  defp parse_elements({ schema, accum }) do
+  defp parse_elements({schema, accum}) do
     schema |> Map.get(:elements) |> if do
-      { schema, schema |> recursively_parse_schema(:elements) |> Map.merge(accum) }
+      {schema, schema |> recursively_parse_schema(:elements) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp parse_properties({ schema, accum }) do
+  defp parse_properties({schema, accum}) do
     schema |> Map.get(:properties) |> if do
-      { schema, schema |> recursively_parse_enumerable_schema(:properties) |> Map.merge(accum) }
+      {schema, schema |> recursively_parse_enumerable_schema(:properties) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp parse_optional_properties({ schema, accum }) do
+  defp parse_optional_properties({schema, accum}) do
     schema |> Map.get(:optionalProperties) |> if do
-      { schema, schema |> recursively_parse_enumerable_schema(:optionalProperties) |> Map.merge(accum) }
+      {schema, schema |> recursively_parse_enumerable_schema(:optionalProperties) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp parse_additional_properties({ schema, accum }) do
+  defp parse_additional_properties({schema, accum}) do
     schema |> Map.get(:additionalProperties) |> is_nil |> if do
-      { schema, accum }
+      {schema, accum}
     else
-      { schema, schema |> Map.take([:additionalProperties]) |> Map.merge(accum) }
+      {schema, schema |> Map.take([:additionalProperties]) |> Map.merge(accum)}
     end
   end
 
-  defp parse_values({ schema, accum }) do
+  defp parse_values({schema, accum}) do
     schema |> Map.get(:values) |> if do
-      { schema, schema |> recursively_parse_schema(:values) |> Map.merge(accum) }
+      {schema, schema |> recursively_parse_schema(:values) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp parse_discriminator({ schema, accum }) do
-    { schema, schema |> Map.take([:discriminator]) |> Map.merge(accum) }
+  defp parse_discriminator({schema, accum}) do
+    {schema, schema |> Map.take([:discriminator]) |> Map.merge(accum)}
   end
 
-  defp parse_mapping({ schema, accum }) do
+  defp parse_mapping({schema, accum}) do
     schema |> Map.get(:mapping) |> if do
-      { schema, schema |> recursively_parse_enumerable_schema(:mapping) |> Map.merge(accum) }
+      {schema, schema |> recursively_parse_enumerable_schema(:mapping) |> Map.merge(accum)}
     else
-      { schema, accum }
+      {schema, accum}
     end
   end
 
-  defp to_schema({ _, accum }) do
+  defp to_schema({_, accum}) do
     struct(JTD.Schema, accum)
   end
 
@@ -271,7 +280,7 @@ defmodule JTD.Schema do
     is_struct(term, JTD.Schema)
   end
 
-  defp check_type!(schema, { keyname, type }) do
+  defp check_type!(schema, {keyname, type}) do
     form = schema |> Map.get(keyname)
     test_fn = String.to_existing_atom("is_#{Atom.to_string(type)}")
     if form do
@@ -303,14 +312,14 @@ defmodule JTD.Schema do
     raise ArgumentError, message: "non-root definitions: #{inspect(definitions)}"
   end
   defp check_definitions_is_only_in_root!(_, schema, root) do
-    { schema, root }
+    {schema, root}
   end
 
-  defp check_ref_form!({ %{ ref: nil }, _ }), do: true
-  defp check_ref_form!({ %{ ref: ref }, %{ definitions: nil } }) do
+  defp check_ref_form!({%{ref: nil}, _}), do: true
+  defp check_ref_form!({%{ref: ref}, %{definitions: nil} }) do
     raise ArgumentError, message: "ref to non-existent definition: #{ref}"
   end
-  defp check_ref_form!({ %{ ref: ref }, %{ definitions: definitions } }) do
+  defp check_ref_form!({%{ref: ref}, %{definitions: definitions} }) do
     definitions
     |> Map.keys
     |> Enum.member?(ref)
@@ -319,8 +328,8 @@ defmodule JTD.Schema do
     end
   end
 
-  defp check_type_form!(%{ type: nil }), do: true
-  defp check_type_form!(%{ type: type }) do
+  defp check_type_form!(%{type: nil}), do: true
+  defp check_type_form!(%{type: type}) do
     @types
     |> Enum.member?(type)
     |> unless do
@@ -328,28 +337,28 @@ defmodule JTD.Schema do
     end
   end
 
-  defp check_enum_form!(%{ enum: nil }), do: true
+  defp check_enum_form!(%{enum: nil}), do: true
   defp check_enum_form!(schema) when schema.enum == [] do
     raise ArgumentError, message: "enum must not be empty: #{schema}"
   end
-  defp check_enum_form!(%{ enum: enum }) do
+  defp check_enum_form!(%{enum: enum}) do
     enum |> Enum.all?(&is_binary/1) |> unless do
       raise ArgumentError, message: "enum must contain only strings: #{inspect(enum)}"
     end
 
     original_length = enum |> length
-    unique_length = enum |> Enum.unique |> length
+    unique_length = enum |> Enum.uniq |> length
     if original_length != unique_length do
       raise ArgumentError, message: "enum must not contain duplicates: #{inspect(enum)}"
     end
   end
 
-  defp check_properties_intersection!(%{ properties: nil }), do: true
-  defp check_properties_intersection!(%{ optionalProperties: nil }), do: true
-  defp check_properties_intersection!(%{ properties: properties, optionalProperties: optional_properties }) do
+  defp check_properties_intersection!(%{properties: nil}), do: true
+  defp check_properties_intersection!(%{optionalProperties: nil}), do: true
+  defp check_properties_intersection!(%{properties: properties, optionalProperties: optional_properties}) do
     properties_keys = properties |> Map.keys |> MapSet.new
     optional_properties_keys = optional_properties |> Map.keys |> MapSet.new
-    intersection = Mapset.intersection(properties_keys, optional_properties_keys)
+    intersection = MapSet.intersection(properties_keys, optional_properties_keys)
 
     intersection
     |> MapSet.to_list
@@ -358,15 +367,6 @@ defmodule JTD.Schema do
       raise ArgumentError, message: "properties and optionalProperties share keys: #{inspect(intersection)}"
     end
   end
-
-  defp form(%{ ref: ref }) when not is_nil(ref), do: :ref
-  defp form(%{ type: type }) when not is_nil(type), do: :type
-  defp form(%{ enum: enum }) when not is_nil(enum), do: :enum
-  defp form(%{ elements: elements }) when not is_nil(elements), do: :elements
-  defp form(%{ properties: properties, optionalProperties: optional_properties }) when (not is_nil(properties)) or (not is_nil(optional_properties)), do: :properties
-  defp form(%{ values: values }) when not is_nil(values), do: :values
-  defp form(%{ discriminator: discriminator }) when not is_nil(discriminator),  do: :discriminator
-  defp form(_), do: :empty
 
   defp mapping_value_must_be_propeties_form(s) do
     if form(s) != :properties do
@@ -390,8 +390,8 @@ defmodule JTD.Schema do
     end
   end
 
-  defp check_mapping_form!(%{ mapping: nil }), do: true
-  defp check_mapping_form!(%{ discriminator: discriminator, mapping: mapping }) do
+  defp check_mapping_form!(%{mapping: nil}), do: true
+  defp check_mapping_form!(%{discriminator: discriminator, mapping: mapping}) do
     mapping
     |> Enum.each(&mapping_value_must_be_propeties_form/1)
     |> Enum.each(&mapping_value_must_not_be_nullable/1)
@@ -399,33 +399,33 @@ defmodule JTD.Schema do
     |> Enum.each(&mapping_value_must_not_contain_discriminator(&1, :optionalProperties, discriminator))
   end
 
-  defp check_definitions_values(%{ definitions: nil }, _), do: true
-  defp check_definitions_values(%{ definitions: definitions }, root) do
+  defp check_definitions_values(%{definitions: nil}, _), do: true
+  defp check_definitions_values(%{definitions: definitions}, root) do
     definitions |> Enum.each(&verify(&1, root))
   end
 
-  defp check_elements_value(%{ elements: nil }, _), do: true
-  defp check_elements_value(%{ elements: elements }, root) do
+  defp check_elements_value(%{elements: nil}, _), do: true
+  defp check_elements_value(%{elements: elements}, root) do
     elements |> verify(root)
   end
 
-  defp check_properties_values(%{ properties: nil }, _), do: true
-  defp check_properties_values(%{ properties: properties }, root) do
+  defp check_properties_values(%{properties: nil}, _), do: true
+  defp check_properties_values(%{properties: properties}, root) do
     properties |> Enum.each(&verify(&1, root))
   end
 
-  defp check_optional_properties_values(%{ optionalProperties: nil }, _), do: true
-  defp check_optional_properties_values(%{ optionalProperties: optional_properties }, root) do
+  defp check_optional_properties_values(%{optionalProperties: nil}, _), do: true
+  defp check_optional_properties_values(%{optionalProperties: optional_properties}, root) do
     optional_properties |> Enum.each(&verify(&1, root))
   end
 
-  defp check_values_value(%{ values: nil }, _), do: true
-  defp check_values_value(%{ values: values }, root) do
+  defp check_values_value(%{values: nil}, _), do: true
+  defp check_values_value(%{values: values}, root) do
     values |> verify(root)
   end
 
-  defp check_mapping_values(%{ mapping: nil }, _), do: true
-  defp check_mapping_values(%{ mapping: mapping }, root) do
+  defp check_mapping_values(%{mapping: nil}, _), do: true
+  defp check_mapping_values(%{mapping: mapping}, root) do
     mapping |> Enum.each(&verify(&1, root))
   end
 end
