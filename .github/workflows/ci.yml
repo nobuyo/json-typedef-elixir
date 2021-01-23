@@ -20,6 +20,8 @@ jobs:
       MIX_ENV: test
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - uses: actions/setup-elixir@v1
         with:
           otp-version: ${{matrix.otp}}
