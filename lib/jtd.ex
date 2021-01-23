@@ -3,5 +3,5 @@ defmodule JTD do
   An Elixir implementation of JSON Type Definition validation
   """
 
-  defdelegate validate(schema, instance, options), to: JTD.Validator
+  defdelegate validate(schema, instance, options \\ %JTD.ValidationOptions{}), to: JTD.Validator
 end
