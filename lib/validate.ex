@@ -1,10 +1,15 @@
 defmodule JTD.ValidationError do
-  @moduledoc false
+  @moduledoc """
+  ValidationError object which has instance path and schema path.
+  """
 
   @type t :: %__MODULE__{instance_path: [...], schema_path: [...]}
 
   defstruct instance_path: [], schema_path: []
 
+  @doc """
+  Returns JTD.ValidationError struct generated from given map. This is for testing purposes only.
+  """
   def from_map(%{ "instancePath" => instance_path, "schemaPath" => schema_path }) do
     %__MODULE__{instance_path: instance_path, schema_path: schema_path}
   end
@@ -14,14 +19,19 @@ defmodule JTD.ValidationError do
 end
 
 defmodule JTD.MaxErrorsReachedError do
-  @moduledoc false
+  @moduledoc """
+  Exception that occurs when the option is given and the maximum number of errors has been reached.
+  """
+
   @type t :: %__MODULE__{message: String.t(), state: any}
 
   defexception message: nil, state: nil
 end
 
 defmodule JTD.MaxDepthExceededError do
-  @moduledoc false
+  @moduledoc """
+  Exception that occurs when the option is given and map reaches the maximum depth.
+  """
   @type t :: %__MODULE__{message: String.t()}
 
   defexception message: nil
@@ -75,7 +85,9 @@ defmodule JTD.ValidationState do
 end
 
 defmodule JTD.ValidationOptions do
-  @moduledoc false
+  @moduledoc """
+  Options for validation.
+  """
 
   @type t :: %__MODULE__{max_depth: integer, max_errors: integer}
 
@@ -84,11 +96,16 @@ end
 
 defmodule JTD.Validator do
   @moduledoc """
-  JSON Typedef validator
+  JSON Typedef validator.
   """
 
   alias JTD.{MaxDepthExceededError, MaxErrorsReachedError}
 
+  @doc """
+  Perform validation to given instance.
+  """
+
+  @spec validate(JTD.Schema.t(), Map.t(), JTD.ValidationOptions.t()) :: [JTD.ValidationError.t()]
   def validate(schema, instance, options) do
     state = %JTD.ValidationState{
       options: options,

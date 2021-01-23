@@ -10,7 +10,7 @@ end
 
 defmodule JTD.Schema do
   @moduledoc """
-    A module to convert Map to JSON Type Definition schema.
+    Module to convert Map to JSON Type Definition schema struct.
   """
 
   alias JTD.TypeError
@@ -99,6 +99,27 @@ defmodule JTD.Schema do
     :mapping
   ]
 
+  @type t :: %__MODULE__{
+    metadata: any,
+    nullable: any,
+    definitions: any,
+    ref: any,
+    type: any,
+    enum: any,
+    elements: any,
+    properties: any,
+    optional_properties: any,
+    additional_properties: any,
+    values: any,
+    discriminator: any,
+    mapping: any
+  }
+
+  @doc """
+  Convert given map to JTD.Schema.
+  """
+
+  @spec from_map(map) :: JTD.Schema.t()
   def from_map(map) when is_map(map) do
     map
     |> check_keywords!
@@ -125,7 +146,14 @@ defmodule JTD.Schema do
     raise TypeError, message: "expected map, got: #{inspect(others)}"
   end
 
+  @doc """
+  Verify converted schema.
+  """
+
+  @spec verify(JTD.Schema.t()) :: JTD.Schema.t()
   def verify(schema), do: verify(schema, schema)
+
+  @doc false
   def verify(schema, root) do
     [
       {:metadata, [:map]},
@@ -167,6 +195,7 @@ defmodule JTD.Schema do
     schema
   end
 
+  @doc false
   def form(%{ref: ref}) when not is_nil(ref), do: :ref
   def form(%{type: type}) when not is_nil(type), do: :type
   def form(%{enum: enum}) when not is_nil(enum), do: :enum
@@ -305,6 +334,7 @@ defmodule JTD.Schema do
     struct(JTD.Schema, accum)
   end
 
+  @doc false
   def is_schema(term) do
     is_struct(term, JTD.Schema)
   end
